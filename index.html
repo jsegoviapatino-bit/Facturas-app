@@ -50,7 +50,7 @@ const datos={
 
 // -------- ENVIAR A GOOGLE SHEET --------
 
-fetch("https://script.google.com/macros/s/AKfycbzkgn0OCA_P9M3Ns8pCcpd6gpbu5iUPwH863ekl5hwgvJDVTz623GI6L1LMENbv0psf/exec",{
+fetch("https://script.google.com/macros/s/AKfycbzG30MTaew4Q0grcxRm_SinlNNfRJnSjeCae17RJFKX4pw6qojjBJxeIg0pLHL4dnJwcQ/exec",{
  method:"POST",
  body:JSON.stringify(datos)
 });
@@ -63,3 +63,25 @@ document.getElementById("estado").innerText="Factura guardada ✅";
 
 </body>
 </html>
+async function uploadImage(file) {
+
+  const reader = new FileReader();
+
+  reader.onloadend = async function () {
+
+    const base64 = reader.result.split(',')[1];
+
+    await fetch(scriptURL, {
+      method: "POST",
+      body: new URLSearchParams({
+        image: base64
+      })
+    });
+
+    alert("Invoice saved!");
+  };
+
+  reader.readAsDataURL(file);
+}
+<input type="file" accept="image/*"
+onchange="uploadImage(this.files[0])">
