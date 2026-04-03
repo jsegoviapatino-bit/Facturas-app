@@ -7,32 +7,58 @@
 
 <body>
 
-<h1>Registrar Factura</h1>
+<h2>Escanear Factura</h2>
 
-<input id="item" placeholder="Item"><br><br>
-<input id="descripcion" placeholder="Descripción"><br><br>
-<input id="cantidad" type="number" placeholder="Cantidad"><br><br>
-<input id="precio" type="number" placeholder="Precio"><br><br>
-<input id="comercio" placeholder="Comercio"><br><br>
+<input type="file" accept="image/*" capture="environment" id="foto">
 
-<button onclick="guardar()">Guardar</button>
+<br><br>
+<button onclick="procesar()">Leer factura</button>
+
+<p id="estado"></p>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
 <script>
-function guardar() {
 
-fetch("https://script.google.com/macros/s/AKfycbzkgn0OCA_P9M3Ns8pCcpd6gpbu5iUPwH863ekl5hwgvJDVTz623GI6L1LMENbv0psf/exec", {
-  method: "POST",
-  body: JSON.stringify({
-    item: document.getElementById("item").value,
-    descripcion: document.getElementById("descripcion").value,
-    cantidad: document.getElementById("cantidad").value,
-    precio: document.getElementById("precio").value,
-    comercio: document.getElementById("comercio").value
-  })
+async function procesar(){
+
+document.getElementById("estado").innerText="Leyendo factura...";
+
+const file=document.getElementById("foto").files[0];
+
+const result = await Tesseract.recognize(
+  file,
+  'eng'
+);
+
+const texto=result.data.text;
+
+console.log(texto);
+
+// -------- EXTRAER DATOS (simple) --------
+
+const precio = texto.match(/\d+\.\d{2}/)?.[0] || "";
+const fecha = texto.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || "";
+
+const datos={
+  fecha:fecha,
+  descripcion:"Compra factura",
+  cantidad:"1",
+  precio:precio,
+  comercio:texto.split("\n")[0]
+};
+
+// -------- ENVIAR A GOOGLE SHEET --------
+
+fetch("https://script.google.com/macros/s/AKfycbzkgn0OCA_P9M3Ns8pCcpd6gpbu5iUPwH863ekl5hwgvJDVTz623GI6L1LMENbv0psf/exec",{
+ method:"POST",
+ body:JSON.stringify(datos)
 });
 
-alert("Factura enviada");
+document.getElementById("estado").innerText="Factura guardada ✅";
+
 }
+
 </script>
 
 </body>
